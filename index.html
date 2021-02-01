@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Solution guide for the Todo CLI problem</title>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/tailwindcss@^1.5/dist/base.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/tailwindcss@^1.5/dist/components.min.css"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/prismjs@1.8.1/themes/prism.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/@tailwindcss/typography@0.2.x/dist/typography.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/tailwindcss@^1.5/dist/utilities.min.css"
+    />
+  </head>
+  <body class="max-w-3xl mx-auto">
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.8.1/components/prism-core.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.8.1/components/prism-python.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.8.1/components/prism-pascal.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.8.1/plugins/autoloader/prism-autoloader.min.js"></script>
+    <article class="prose lg:prose-xl px-4 py-6">
+      <h1>Solution guide for the Todo CLI problem</h1>
+      <p>
+        Hello! We looked at over three thousand code submissions for the
+        CoronaSafe Engineering Fellowship program and discovered a few patterns
+        that are &ldquo;low hanging fruits&rdquo; - things that bring in huge
+        benefits, but are surprisingly easy to do.
+      </p>
+      <p>
+        But first - if you want to see the kind of code we&rsquo;re looking for,
+        <a
+          href="https://gist.github.com/jasim/99c7b54431c64c0502cfe6f677512a87"
+          target="_blank"
+          rel="noopener"
+          >please check out this solution to the Todo CLI challenge</a
+        >.
+      </p>
+      <p>
+        The above solution passes all the automated tests and will take an
+        experienced programmer only about an hour to write. Please compare it
+        with your code submission and see where they differ.&nbsp;
+      </p>
+      <p>
+        In the following sections we explain the reasoning behind the structure
+        of this sample solution.
+      </p>
+      <h1>What is &ldquo;good code&rdquo;, and why is it important?</h1>
+      <p>
+        There is a counter-intuitive thing in how long it takes to write code:
+        we often think we can go faster if we don&rsquo;t care about quality. It
+        is wrong. You could be overall faster writing clean, considered programs
+        than if you try to go quickly with a rush job. You just need to know the
+        right techniques and have an understanding of what makes code
+        &ldquo;good&rdquo;.
+      </p>
+      <p>
+        Good code is easy to read and understand. It is well-formatted. It has a
+        visual structure that is pleasing to the eye. It uses descriptive
+        variable names, not too long, not too short. And it encodes the domain
+        explicitly in code so those who read it can understand the nuances of
+        the underlying problem it is trying to solve.
+      </p>
+      <p>
+        Software developers spend the majority of their lives in front of a
+        computer - writing, reading, and changing code. The codebase they work
+        on is their home. If the codebase is convoluted and messy, their lives
+        are difficult. If the codebase is clean and elegant, programming is a
+        joy.
+      </p>
+      <p>
+        That is your cue as a student who wants to enter the industry in the
+        next few years. Learn to write good, pleasing code that your fellow
+        programmers find simple to understand, and you&rsquo;re already miles
+        ahead in your pursuit of a rewarding career as a software engineer.
+      </p>
+      <p>
+        &ldquo;Any fool can write code that a computer can understand. Good
+        programmers write code that humans can understand.&rdquo; &mdash; Martin
+        Fowler
+      </p>
+      <p>
+        Let us look at some of the problematic patterns that we found in the
+        code submissions, and how you can fix them.
+      </p>
+      <p>The problems are:</p>
+      <ol>
+        <li>Poor aesthetics - code that fails the squint test</li>
+        <li>Short unintelligible variable names</li>
+        <li>Interleaving I/O with computation</li>
+        <li>Suboptimal programming language choice</li>
+      </ol>
+      <h2>1. Poor aesthetics / failing the squint test</h2>
+      <p>
+        When we were reviewing the submissions for the Todo CLI challenge, we
+        could say how good a solution was within a few seconds of seeing it on
+        screen.
+      </p>
+      <p>
+        You can too.
+        <strong
+          >Code that looks clean, easy to scan, and overall visually appealing
+          is likely to be good. But code that looks messy wouldn&rsquo;t
+          probably be that great.</strong
+        >
+      </p>
+      <p>
+        Take a quick look at this piece of code - just glance at it, don&rsquo;t
+        try understanding what it does:
+      </p>
+      <pre>
+  <code class="language-python">
+if os.path.isfile('todo.txt'):
+    with open('todo.txt', 'r') as todoFileOri:
+        data = todoFileOri.readlines()
+    ct = len(data)
+    if num > ct or num <= 0:
+        sys.stdout.buffer.write('Error: todo #{} does not exist.'.format(num).encode('utf8'
+                                ))
+    else:
+        with open('todo.txt', 'w') as todoFileMod:
+            if os.path.isfile('done.txt'):
+                with open('done.txt', 'r') as doneFileOri:
+                    doneData = doneFileOri.read()
+                with open('done.txt', 'w') as doneFileMod:
+                    for line in data:
+                        if ct == num:
+                            doneFileMod.write('x '
+                                    + datetime.today().strftime('%Y-%m-%d'
+                                    ) + ' ' + line)
+                        else:
+                            todoFileMod.write(line)
+                        ct -= 1
+                    doneFileMod.write(doneData)
+            else:
+                with open('done.txt', 'w') as doneFileMod:
+                    for line in data:
+                        if ct == num:
+                            doneFileMod.write('x '
+                                    + datetime.today().strftime('%Y-%m-%d'
+                                    ) + ' ' + line)
+                        else:
+                            todoFileMod.write(line)
+                        ct -= 1
+        sys.stdout.buffer.write('Marked todo #{} as done.'.format(num).encode('utf8'
+                                ))
+else:
+    sys.stdout.buffer.write('Error: todo #{} does not exist.'.format(num).encode('utf8'
+                            ))
+</code>
+</pre>
+      <p>
+        An experienced programmer will see this code and immediately realize
+        that the control flow is nested and tangled up. It will take us some
+        moments to read through it and understand what it is doing.
+      </p>
+      <p>
+        Now, take a look at this code sample, which is completely unrelated to
+        the Todo CLI problem. Just glance at it - you shouldn&rsquo;t try to
+        read and understand what it is doing:
+      </p>
+      <pre>
+  <code class="language-pascal">
+{$S SegPaste }
+PROCEDURE CenterScrap(VAR r: Rect);
+{ Center scrap rectangle in current window.     }
+{ Exit fatBits if rect is too wide or too tall. }
+VAR width,height: INTEGER;
+    windRect:   Rect;
+    saveGrid:   BOOLEAN;
+BEGIN
+  saveGrid := toolGrid;
+  toolGrid := TRUE;
+  width := r.right - r.left;
+  height := r.bottom - r.top;
+
+  IF (width > 48) OR (height > 30) THEN  { won't fit in fatBits }
+    BEGIN
+      fatFlag := FALSE;
+      CheckItem(myMenus[aidsMenu],fatItem,fatFlag);
+    END;
+
+  windRect := altBits.bounds;
+  IF fatFlag THEN windRect := fatBits.bounds;
+  WITH r DO
+    BEGIN
+      left := (windRect.left + windRect.right - width) DIV 2;
+      top  := (windRect.top + windRect.bottom - height) DIV 2;
+      IF NOT fatFlag THEN GridPoint(topLeft);  { dont let fat get off screen }
+      right := left + width;
+      bottom := top + height;
+    END;
+
+  toolGrid := saveGrid;
+END;
+  </code>
+</pre>
+      <p>
+        Take a glance at both code samples and see which one feels more elegant.
+        Which one of them looks like someone spent time on it lovingly polishing
+        every letter of it?
+      </p>
+      <p>
+        That - how you feel about a code&rsquo;s appearance at a quick glance -
+        that is the squint test.
+      </p>
+      <p>Let&rsquo;s try to unpack it a bit.</p>
+      <p>
+        The first code snippet is written in Python - it is quite good, make no
+        mistake. It executes correctly, passes the automated tests, and has used
+        descriptive variable names.
+      </p>
+      <p>
+        The second code snippet is written in Pascal, an old venerable
+        programming language. It is part of MacPaint, which was released in 1984
+        for the original Macintosh computer. It is one of the earliest digital
+        painting applications, a precursor to the MS-Paint of modern times.
+      </p>
+      <p>
+        Between the two, the older Pascal program would pass the &ldquo;squint
+        test&rdquo; for an experienced programmer. But
+        <a
+          href="https://computerhistory.org/blog/macpaint-and-quickdraw-source-code/"
+          target="_blank"
+          rel="noopener"
+          >MacPaint is, in Prof. Donald Knuth&rsquo;s opinion, &ldquo;the best
+          program ever written&rdquo;</a
+        >, and so the comparison is not totally fair.
+      </p>
+      <p>
+        The point here is that irrespective of which language we use, and how
+        old or new the code is, the &ldquo;squint test&rdquo; is timeless. If
+        you can briefly glance at a piece of program and enjoy its visual
+        elegance, then it is likely better than code that doesn&rsquo;t pass the
+        squint test. Even if both code snippets work the same.
+      </p>
+      <p>
+        Code that doesn&rsquo;t pass the squint test is an automatic rejection
+        during most programming interviews. It wouldn&rsquo;t even matter how
+        fast your code is, unless that is the only criterion in which it is
+        judged - like in an algorithms challenge.
+      </p>
+      <p>
+        And when some code passes the squint test, then it means that its
+        internal structure is also probably good. Think of bananas. If the outer
+        skin has brown spots, then it is very likely that it is overripe and not
+        probably good to eat. But if the skin looks fresh and spotless, then the
+        banana is almost always good inside as well.
+      </p>
+      <p>
+        Aesthetics matter. What we see on the surface - messy or clean - it will
+        reflect in the program&rsquo;s deeper structure as well.
+      </p>
+      <p>
+        So if we have to improve our craft as programmers, we should strive to
+        write code that is elegant and pleasing to the eye. But how?
+      </p>
+      <h3>1. Use an automatic code formatter</h3>
+      <p>
+        Setup your editor so that every time you save the code, the auto
+        formatter runs and cleans up your code. It will line up the spaces
+        inside expressions, sometimes split long lines, and indents code so that
+        the control flow is clear to see.
+      </p>
+      <p>
+        Automatic code formatting can be setup within a minute, it is such an
+        easy way to magically improve your perceived ability as a programmer.
+      </p>
+      <p>
+        If you don&rsquo;t already have it set up, then you must stop everything
+        you&rsquo;re doing and go set it up immediately!
+      </p>
+      <p>
+        Check out
+        <a href="https://prettier.io/" target="_blank" rel="noopener"
+          >Prettier</a
+        >
+        if you are using JavaScript. If Python, then the official formatter is
+        <a href="https://github.com/psf/black" target="_blank" rel="noopener"
+          >Black</a
+        >. All Java IDEs come with their own formatter. For C and C++, there is
+        <a
+          href="https://clang.llvm.org/docs/ClangFormat.html"
+          target="_blank"
+          rel="noopener"
+          >ClangFormat</a
+        >.
+      </p>
+      <p>
+        If you are a VSCode user,
+        <a
+          href="https://www.youtube.com/watch?v=iGWwmVmvFPk"
+          target="_blank"
+          rel="noopener"
+          >watch this short video explaining how to set it up and how it
+          works</a
+        >
+      </p>
+      <h3>
+        2. Use descriptive variable names, but keep it short depending on
+        context.
+      </h3>
+      <p>
+        Paraphrased from the excellent
+        <a
+          href="https://dev.realworldocaml.org/files-modules-and-programs.html#design-for-the-call-site"
+          target="_blank"
+          rel="noopener"
+          >&ldquo;Real World OCaml&rdquo; by Minsky, Madhavapeddy, and Hickey</a
+        >:
+      </p>
+      <p>
+        You can improve readability by choosing good names for your functions,
+        variant tags and record fields. Good names aren&rsquo;t always long, to
+        be clear. If you wanted to write an anonymous function for doubling a
+        number: (fun x -&gt; x * 2), a short variable name like x is best. A
+        good rule of thumb is that names that have a small scope should be
+        short, whereas names that have a large scope, like the name of a
+        function in a module interface, should be longer and more explicit.
+      </p>
+      <p>
+        There is of course a tradeoff here, in that making your APIs more
+        explicit tends to make them more verbose as well. Another useful rule of
+        thumb is that more rarely used names should be longer and more explicit,
+        since the cost of concision and the benefit of explicitness become more
+        important the more often a name is used.
+      </p>
+      <p>
+        That said, if you want to lean towards one side, then please always err
+        on the side of descriptive variable names rather than short
+        unintelligible mnemonics.
+      </p>
+      <h3>
+        3. Keep control flow linear, minimize conditional branching, and avoid
+        nesting.
+      </h3>
+      <p>
+        Remember that these are only guidelines - not all problems can be made
+        linear nor can their nesting be avoided. But for most problems -
+        including things like the Todo CLI application, it is very much
+        possible.
+      </p>
+      <p>
+        Your first instincts when writing code should be to avoid unnecessary
+        branching and deep nesting. If the problem however resists that attempt,
+        then it is okay - some complexity is irreducible. But don&rsquo;t leave
+        without giving it a try.
+      </p>
+      <p>
+        One way of achieving this is to use &ldquo;early returns&rdquo;. For
+        example, if your method cannot work if a file doesn&rsquo;t exist, then
+        check for it in the beginning, and return immediately if the check
+        fails.
+      </p>
+      <p>eg, instead of:</p>
+      <pre>
+        <code class="language-python">
+def markDone(num):
+if os.path.isfile('todo.txt'):
+    # actual code
+else:
+    # print error
+    return
+        </code>
+      </pre>
+      <p>We can write:</p>
+      <pre>
+        <code class="language-python">
+def markDone(num):
+if not os.path.isfile('todo.txt'):
+  # print error
+  return
+# actual code
+        </code>
+      </pre>
+      <p>
+        This way the rest of the code is linear and we don&rsquo;t have the
+        mental overhead of keeping track of the nesting.
+      </p>
+      <p>
+        Another way to make the narrative of the code clearer is to use what
+        I&rsquo;d call the &ldquo;mise-en-place&rdquo; approach to arranging
+        code inside a function. In cooking, it means &ldquo;put in place&rdquo;
+        - gather and arrange all the ingredients needed, before we turn on the
+        stove.
+      </p>
+      <p>
+        We can apply it in programming in this manner - a function should setup
+        all the data it needs in the beginning of its body, and not intersperse
+        it into the actual computation code.
+      </p>
+      <p>
+        So if it needs data from a file or a response from a network request,
+        then it should run all of them first and store into appropriate
+        variables, and only then do the computation.
+      </p>
+      <p>
+        For example, see the
+        <a
+          href="https://gist.github.com/jasim/99c7b54431c64c0502cfe6f677512a87#file-todo_cli_coronasafe-js-L114"
+          target="_blank"
+          rel="noopener"
+          >cmdMarkDone() function in the sample Todo CLI code</a
+        >. It validates the argument, reads the data, and sets everything up
+        first. Then the computation code is free of any distractions and is
+        clear to read.
+      </p>
+      <h3>4. Do not interleave I/O with computation</h3>
+      <p>
+        The earlier point leads directly here. I/O stands for input and output -
+        that includes getting user input through the keyboard or mouse, reading
+        and writing to files, network requests, database reads and writes, even
+        printing things to screen.
+      </p>
+      <p>
+        All these things should sit in the boundary of our system, and the inner
+        core should be just pure computation.
+      </p>
+      <p>
+        This concept is called &ldquo;functional core, imperative shell&rdquo;,
+        and is explained in great detail by
+        <a
+          href="https://www.destroyallsoftware.com/screencasts/catalog/functional-core-imperative-shell"
+          target="_blank"
+          rel="noopener"
+          >Gary Bernhadt in his talk of the same name</a
+        >.
+      </p>
+      <h3>5. Suboptimal choice of programming language</h3>
+      <p>
+        Emacs and Vim are two of the most powerful text editors in the world.
+        They have different philosophies about text editing, but in their own
+        ways, they both have great utility.
+      </p>
+      <p>
+        However, using either of these editors will not magically make any of us
+        better at text editing. In fact - it is likely that you will become
+        worse at it if you pick these tools. It is the same for a lot of
+        advanced tools: they have a steep learning curve and until you master
+        them, you will be less productive than people using conventional tools.
+      </p>
+      <p>
+        Consider the mobile phone camera versus a DSLR. If you don&rsquo;t know
+        anything about photography, a phone camera is your best choice.
+        It&rsquo;ll let you take high-quality pictures without having to spend
+        much time figuring it out. But if you use an advanced, flexible device
+        like a DSLR, then you need to know photography well to take good
+        pictures. Otherwise the photos you take with them could be worse than
+        photos taken by an amateur photographer on their cheaper, automatic
+        phone cameras.
+      </p>
+      <p>
+        This applies to your choice of programming language as well. The Todo
+        list CLI application is a high-level programming problem and can be
+        easily solved with high-level languages like Python and JavaScript. They
+        have excellent standard libraries that are well-documented, making many
+        of the common programming operations very easy.
+      </p>
+      <p>
+        Compared to these high-level languages, the C programming language is
+        much more powerful - it lets you write code that can manually manage the
+        memory and invoke system calls directly. If you were writing low-level
+        software like an operating system kernel, or a database engine, then C
+        &amp; C++ are well-suited for them. But if you are trying to solve a
+        problem like the Todo CLI - then you have to be really good at C to
+        compete against a programmer who&rsquo;s just passable at a high-level
+        programming language.
+      </p>
+      <p>
+        In the future, if you want to solve an algorithmic or systems-level
+        problem, then by all means use C and C++. But if it is a high-level
+        problem, then use a high-level language with a rich standard library.
+        This way you can focus on the domain rather than worrying about
+        low-level primitives that are unnecessary in that context.
+      </p>
+      <p>
+        So if you only know C, then it is high-time you also picked up a
+        high-level programming language to use as your daily driver.
+      </p>
+      <h2>Additional references:</h2>
+      <p>
+        If you are curious to learn more about these things, there is no better
+        way than immersing in some computing literature.
+      </p>
+      <p>
+        In &ldquo;Out of the tar pit&rdquo;, Moseley and Marks describe two
+        kinds of complexity: Essential and Accidental. While we cannot do
+        anything about the essential complexity, they argue, we should keep the
+        accidental complexity in a system to the minimum. In the first part of
+        the paper where they describe the problem is lucid and timeless. In the
+        second part they propose a solution to this problem, and you can safely
+        skip that section if you want to.
+        <a
+          href="https://github.com/papers-we-love/papers-we-love/blob/master/design/out-of-the-tar-pit.pdf"
+          target="_blank"
+          rel="noopener"
+          >Out of the Tar Pit</a
+        >
+      </p>
+      <p>
+        Another article you might find insightful is the 1985 paper by Peter
+        Naur titled &ldquo;Programming as Theory Building&rdquo;. In it he
+        explains that all large programs have a theory behind it. If you are one
+        of its original authors, then you shaped that theory. So if in the
+        future you want to make a change to the system, you can confidently do
+        it. This is because you know why the codebase is organized in that
+        specific manner, so whatever change you do will be coherent with its
+        internal design. A new programmer would only see the surface level code
+        and will not be able to figure out exactly what to change, what to
+        extend, or what to remove to accommodate a new feature. Great codebases
+        go to great pains to make this theory obvious to everyone, so it can
+        continue to evolve without being bottlenecked on its original designers.
+        Read the paper at
+        <a
+          href="http://pages.cs.wisc.edu/~remzi/Naur.pdf"
+          target="_blank"
+          rel="noopener"
+          >http://pages.cs.wisc.edu/~remzi/Naur.pdf</a
+        >
+      </p>
+      <h2>In Conclusion</h2>
+      <p>
+        I hope this gives you a starting point to learn more about writing good
+        code. You don&rsquo;t have to thoroughly understand everything said in
+        this post. You just need to read and immerse in the ideas described here
+        so over time they will seep into your mind and finally click into place
+        when you encounter the right situation.
+      </p>
+      <p>We wish you good luck and great fun building software.</p>
+    </article>
+  </body>
+</html>
